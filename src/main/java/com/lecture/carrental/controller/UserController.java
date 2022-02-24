@@ -41,6 +41,16 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
+    @DeleteMapping("/user/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> deleteUser(@PathVariable Long id){
+        userService.removeById(id);
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
+
+
     @GetMapping("/user/{id}/auth")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserByIdAdmin(@PathVariable Long id){
