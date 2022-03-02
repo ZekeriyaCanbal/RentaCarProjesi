@@ -70,4 +70,16 @@ public class ReservationController {
         map.put("Reservation added successfully!", true);
         return new ResponseEntity<>(map, HttpStatus.CREATED);
     }
+
+    @GetMapping("/admin/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> addReservation(@RequestParam(value = "userId") Long userId,
+                                                               @RequestParam(value = "carId") Car carId,
+                                                               @Valid @RequestBody Reservation reservation){
+        reservationService.addReservation(reservation, userId, carId);
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("Reservation added successfully!", true);
+
+        return new ResponseEntity<>(map, HttpStatus.CREATED);
+    }
 }
