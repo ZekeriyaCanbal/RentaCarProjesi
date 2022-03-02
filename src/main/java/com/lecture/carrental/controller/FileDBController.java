@@ -53,6 +53,7 @@ public class FileDBController {
     }
 
     @GetMapping("")             //yüklelen tüm resim URL ve bilgilerini alıyor.
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<FileDTO>> getAllFiles(){
         List<FileDTO> files = fileDBService.getAllFile().map(dbFile ->{
             String fileDownloadUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -66,7 +67,7 @@ public class FileDBController {
 
     }
 
-    @GetMapping("/{id}")        // id si verilen resim download ediliyor.
+    @GetMapping("/download/{id}")        // id si verilen resim download ediliyor.
     public ResponseEntity<byte[]> getFile(@PathVariable String id){
         FileDB fileDB = fileDBService.getFileById(id);
 

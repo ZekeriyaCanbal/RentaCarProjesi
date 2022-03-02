@@ -35,7 +35,7 @@ public class Car {
 
     @NotNull(message = "Please enter the car luggage")
     @Column(nullable = false)
-    private Integer leggage;
+    private Integer luggage;
 
     @Size(max = 30)
     @NotNull(message = "Please enter the car transmision")
@@ -59,7 +59,7 @@ public class Car {
     @Column(length = 30, nullable = false)
     private String fuelType;
 
-    private Boolean builtIn;
+    private Boolean builtIn = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "car_image", joinColumns = @JoinColumn(name = "car_id"), inverseJoinColumns = @JoinColumn(name = "file_id"))
