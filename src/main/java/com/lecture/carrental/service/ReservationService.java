@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
-
+import java.util.Optional;
 
 
 @AllArgsConstructor
@@ -63,6 +63,43 @@ public class ReservationService {
         reservation.setTotalPrice(totalPrice);
         reservationRepository.save(reservation);
     }
+    public void updateReservation(Car carId, Long reservationId, Reservation reservation) throws BadRequestException {
+        boolean checkStatus = carAvailability(carId.getId(), reservation.getPickUpTime(), reservation.getDropOffTime());
+
+        Reservation reservationExist = reservationRepository.findById(reservationId).orElseThrow(()->
+                new ResourceNotFoundException(String.format(RESERVATION_NOT_FOUND_MSG, reservationId)));
+
+        if (reservation.getPickUpTime().compareTo(reservationExist.getPickUpTime()) == 0 &&
+                reservation.getDropOffTime().compareTo(reservationExist.getDropOffTime()) == 0 &&
+                carId.getId().equals(reservationExist.getCarId().getId())) {
+
+            reservationExist.setStatus(reservation.getStatus());
+
+        }
+        else if (checkStatus)
+            throw new BadRequestException("Car is already reserved! Please chose another!");
+
+        Double totalPrice = totalPrice(reservation.getPickUpTime(), reservation.getDropOffTime(), carId.getId());
+
+        reservationExist.setTotalPrice(totalPrice);
+
+        reservationExist.setCarId(carId);
+        reservationExist.setPickUpTime(reservation.getPickUpTime());
+        reservationExist.setDropOffTime(reservation.getDropOffTime());
+        reservationExist.setPickUpLocation(reservation.getPickUpLocation());
+        reservationExist.setDropOffLocation(reservation.getDropOffLocation());
+
+        reservationRepository.save(reservationExist);
+    }
+
+    public void removeById(Long id) throws BadRequestException {
+        boolean reservationsExists = reservationRepository.existsById(id);
+        if (!reservationsExists){
+            throw new ResourceNotFoundException("reservation does not exists");
+        }
+        reservationRepository.deleteById(id);
+    }
+
     public boolean carAvailability(Long carId, LocalDateTime pickUpTime, LocalDateTime dropOffTime){
         List<Reservation> checkStatus = reservationRepository
                 .checkStatus(carId, pickUpTime, dropOffTime,
