@@ -11,10 +11,18 @@ import com.lecture.carrental.repository.CarRepository;
 import com.lecture.carrental.repository.ReservationRepository;
 import com.lecture.carrental.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 
 @AllArgsConstructor
@@ -27,6 +35,8 @@ public class ReservationService {
     private final static String USER_NOT_FOUND_MSG = "user with id %d not found";
     private final static String CAR_NOT_FOUND_MSG = "car with id %d not found";
     private final static String RESERVATION_NOT_FOUND_MSG = "reservation with id %d not found";
+    private ReservationService reservationService;
+
     //    public ReservationService(ReservationRepository reservationRepository) {
     //        this.reservationRepository = reservationRepository;
     //    }
@@ -111,6 +121,28 @@ public class ReservationService {
                 new ResourceNotFoundException(String.format(CAR_NOT_FOUND_MSG, carId)));
         Long hours = (new Reservation()).getTotalHours(pickUpTime, dropOffTime);
         return car.getPricePerHour() * hours;
+    }
+
+    @GetMapping("/auth")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> checkCarAvailability (@RequestParam(value = "carId") Long carId,
+                                                                     @RequestParam(value = "pickUpDateTime")
+                                                                     @DateTimeFormat(pattern = "MM/dd/yyyy " +
+                                                                             "HH:mm:ss")
+                                                                             LocalDateTime pickUptime,
+                                                                     @RequestParam(value = "dropOffDateTime")
+                                                                     @DateTimeFormat(pattern = "MM/dd/yyyy " +
+                                                                             "HH:mm:ss")
+                                                                             LocalDateTime dropOffTime) {
+
+        boolean availability = reservationService.carAvailability(carId, pickUptime, dropOffTime);
+        Double totalPrice = reservationService.totalPrice(pickUptime, dropOffTime, carId);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("isAvailable", !availability);
+        map.put("totalPrice", totalPrice);
+
+        return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
 }
